@@ -1,0 +1,3 @@
+defaultProject: prj-lii-datalake-devtest
+defaultAssertionDataset: dataform_assertion  
+dataformCoreVersion: 3.0.26
