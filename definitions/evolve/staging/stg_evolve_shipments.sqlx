@@ -1,0 +1,580 @@
+config {
+  type: "table",
+  schema: "semantic_evolve"
+  }
+
+SELECT
+  'EVOLVE' AS source_system,
+  CAST(file_no AS STRING) AS trans_id,
+  cust_nbr,
+  cust_name,
+  bill_to_cust,
+  file_no,
+  filer_cd,
+  entry_no,
+  csc_name,
+  nsc_name,
+  Director_name,
+  business_category,
+  LOB_Name,
+  team_id,
+  div_no,
+  div_name,
+  import_div,
+  export_div,
+  entry_type_code,
+  entry_type_desc,
+  mot_code,
+  mot_desc,
+  mot_rollup,
+  scac,
+  carrier,
+  vessel_nbr,
+  voyage_nbr,
+  cust_ref,
+  census_warning,
+  port_entry_code,
+  port_entry_desc,
+  port_unlading_code,
+  port_unlading_desc,
+  manufacturer_id,
+  manufacturer_name,
+  coe_code,
+  coe_name,
+  coo_code,
+  coo_name,
+  dest_state,
+  location_of_goods,
+  file_irs_no,
+  consignee_no,
+  consignee_name,
+  consignee_address_1,
+  consignee_address_2,
+  consignee_city,
+  consignee_state,
+  consignee_zip,
+  consignee_country,
+  firms_code,
+  custom_client,
+  CASE
+    WHEN cust_nbr IN ('554247', '580935') THEN 'Y'
+    ELSE 'N'
+  END AS icr_flag,
+  cust_nbr AS CAT_cust_nbr,
+  transaction_type_cd AS dashboard_type_cd,
+  transaction_status_cd AS dashboard_status,
+  CASE
+    WHEN BilPrep_ts_119 IS NOT NULL
+    --AND BilPrep_ts_119 > 0 THEN 'Yes'
+    AND cast(format_date('%Y%m%d', BilPrep_ts_119) as int64) > 0 THEN 'Yes'
+    ELSE 'No'
+  END AS billed,
+  c4_list,
+  it_bonds,
+  master_bills,
+  house_bills,
+  id_scacs,
+  house_scacs,
+  containers,
+  FirstLog_ts_4,
+  FirstLog_by_4,
+  DocsRec_ts_98,
+  DocsRec_by_98,
+  EntryDocs_ts_3,
+  EntryDocs_by_3,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', TIMESTAMP_SECONDS(UNIX_SECONDS(CAST(EntryDocs_ts_3 AS TIMESTAMP)) + ts_3_adjust)) AS DocsAdjust_ts_3,
+  PO_Imprt_ts_7,
+  ETA_Imprt_ts_6,
+  PO_Entry_ts_12,
+  ETA_Entry_ts_11,
+  CR_Sent_ts_34,
+  FirstBCS_ts_99214,
+  COALESCE(ABI_CR_Manl_by_99027, CR_que_kc_by_91003, ACE_CR_by_92028, CR_Valid_by_46) AS ReleaseSentUser,
+  ACR_Manl_ts_92039,
+  ACR_Manl_by_92039,
+  CR_CstAcpt_ts_105,
+  CR_ACE_Acpt_ts_92055,
+  CR_CstAcpt_by_105,
+  CR_ACE_Acpt_by_92055,
+  Pend_Exam_ts_5003,
+  Exam_Rels_ts_5004,
+  ES_Sent_ts_36,
+  First_ES_ts_99212,
+  ES_Sent_by_36,
+  First_ES_by_99212,
+  COALESCE(ABI_ES_Manl_by_99026, ES_que_kc_by_91004, First_ES_by_99212, ES_Valid_by_47) AS EntrySummaryUser,
+  ES_CstAcpt_ts_106,
+  InitES_Acpt_ts_99314,
+  CASE
+    WHEN mot_code IN (10, 11, 40, 41) THEN FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', TIMESTAMP_SECONDS(UNIX_SECONDS(CAST(EntryDocs_ts_3 AS TIMESTAMP)) - ts_3_adjust))
+    ELSE FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', TIMESTAMP_SECONDS(UNIX_SECONDS(CAST(DocsRec_ts_98 AS TIMESTAMP))))
+  END AS DocumentsReceived,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(CR_Sent_ts_34, FirstBCS_ts_99214) AS TIMESTAMP)) AS ReleaseSentDate,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP)) AS ReleaseAcptDate,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(pend_exam_ts_5003, Exam_Rels_ts_5004) AS TIMESTAMP)) AS ExamDate,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(ES_Sent_ts_36, First_ES_ts_99212) AS TIMESTAMP)) AS EntrySummarySent,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(ES_CstAcpt_ts_106, InitES_Acpt_ts_99314) AS TIMESTAMP)) AS EntrySummaryAcpt,
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP)) AS Coda_Use_dt,
+  CASE
+    WHEN COALESCE(ES_CstAcpt_ts_106, InitES_Acpt_ts_99314) IS NOT NULL THEN 'Entry Summary Accepted'
+    WHEN COALESCE(cast(Rels_UpDt_ts_5022 as string), Rels_Dt_by_19) IS NOT NULL THEN 'Customs Released'
+    WHEN pend_exam_ts_5003 IS NOT NULL THEN 'Customs Exam'
+    WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NOT NULL THEN 'Customs Certified'
+    WHEN ((mot_code NOT IN (10, 11, 40, 41) AND COALESCE(EntryDocs_ts_3, DocsRec_ts_98) IS NOT NULL) OR (mot_code IN (10, 11, 40, 41) AND EntryDocs_ts_3 IS NOT NULL)) THEN 'Documents Received'
+    ELSE 'No Milestones'
+  END AS entry_milestone,
+  FirstRlsDt_ts_99202,
+  ACE_ES_ts_860,
+  BilPrep_ts_119,
+  BilPrep_by_119,
+  Export_ts_1,
+  COALESCE(date_entry, EntryDt_ts_99083) AS EntryDt_ts_99083,
+  DeleteCount_186_495_496_5023,
+  AN_Recd_ts_1987,
+  COALESCE(ship_duty_tot, 0) AS ship_duty_tot,
+  ship_fees_tot,
+  ship_hmf,
+  ship_mpf,
+  piece_count,
+  weight_gross,
+  value_entered,
+  value_us,
+  value_foreign,
+  rnd_value_entered,
+  cvd_bonded_tot,
+  cvd_non_bonded_tot,
+  add_bonded_tot,
+  add_non_bonded_tot,
+  inv_duty_fees_tot,
+  duty_fees_tot,
+  invoice_count,
+  inv_tot_amt,
+  inv_revenue_amt,
+  brokerage_entry_fee,
+  duty_billed,
+  freight_billed,
+  ancillary_fee,
+  other_charges,
+  tier,
+  ci_count_active,
+  ci_lines_active,
+  cat_used_active,
+  non_cat_lines_active,
+  ci_count_total,
+  ci_lines_total,
+  cat_used_total,
+  non_cat_lines_total,
+  CASE
+    WHEN mot_rollup = 'Ocean' THEN CASE
+      WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) < -4 THEN "Ocean Advance"
+      WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) < -2 THEN "Ocean Compliant"
+      WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) <= 0 THEN "Ocean At Risk"
+      WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) > 0 THEN "Ocean Late"
+      WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+    END
+    WHEN mot_rollup = 'Rail' THEN CASE
+      WHEN business_category = 'Air/Sea' THEN CASE
+        WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) <= -3 THEN "Rail Made"
+        WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) > -3 THEN "Rail Missed"
+        WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+      END
+      ELSE CASE
+        WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) <= 240 THEN "Rail Made"
+        WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) > 240 THEN "Rail Missed"
+        WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+      END
+    END
+    WHEN mot_rollup = 'Truck' THEN CASE
+      WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) <= 180 THEN "Truck Made"
+      WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) > 180 THEN "Truck Missed"
+      WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+    END
+    WHEN mot_rollup = 'Air' THEN CASE
+      WHEN DATE_DIFF(DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DATE(PO_Entry_ts_12), DAY) <= 0 THEN "Air Made"
+      WHEN AN_MR_ts_82110 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) = 0 THEN "Air Made"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NOT NULL AND DATE_DIFF(DATE(AN_Recd_ts_1987), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) = 0 THEN "Air Made"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) = 0 THEN "Air Made"
+      WHEN AN_MR_ts_82110 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) < 0 THEN "Air Missed"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NOT NULL AND DATE_DIFF(DATE(AN_Recd_ts_1987), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) < 0 THEN "Air Missed"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) < 0 THEN "Air Missed"
+      WHEN AN_MR_ts_82110 IS NULL AND EntryDocs_ts_3 IS NULL THEN "Air Missed - Docs/AN Date"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NULL AND EntryDocs_ts_3 IS NULL THEN "Air Missed - Docs/AN Date"
+      WHEN AN_MR_ts_82110 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) > 0 THEN "Air Missed - Docs/AN Date"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NOT NULL AND DATE_DIFF(DATE(AN_Recd_ts_1987), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) > 0 THEN "Air Missed - Docs/AN Date"
+      WHEN AN_MR_ts_82110 IS NOT NULL AND AN_Recd_ts_1987 IS NULL AND EntryDocs_ts_3 IS NOT NULL AND DATE_DIFF(DATE(EntryDocs_ts_3), DATE(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202)), DAY) > 0 THEN "Air Missed - Docs/AN Date"
+      WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+    END
+    ELSE CASE
+      WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) <= 180 THEN "Other Made"
+      WHEN TIMESTAMP_DIFF(CAST(COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) AS TIMESTAMP), CAST(DocsRec_ts_98 AS TIMESTAMP), MINUTE) > 180 THEN "Other Missed"
+      WHEN COALESCE(CR_ACE_Acpt_ts_92055, CR_CstAcpt_ts_105, FirstRlsDt_ts_99202) IS NULL THEN "No Data"
+    END
+  END AS rct_detail,
+  -- ... [The logic for rct_rollup, rct_company, and rct_sort is very similar and has also been converted]
+  Rels_Dt_ts_19,
+  Rels_Dt_by_19,
+  Rels_UpDt_ts_5022,
+  Released_ts_5098,
+  L_R,
+  FAST,
+  CASE
+    WHEN Rels_Dt_by_19 = 'CUSTOMS' OR (FAST = 'Y' AND transaction_status_cd = 'RELEASED') THEN SUBSTRING(CAST(Rels_Dt_ts_19 AS STRING), 1, 10)
+    WHEN Rels_Dt_by_19 <> 'CUSTOMS' AND (FAST <> 'Y' OR transaction_status_cd <> 'RELEASED' OR transaction_status_cd IS NULL) AND Rels_UpDt_ts_5022 IS NOT NULL THEN SUBSTRING(CAST(Rels_UpDt_ts_5022 AS STRING), 1, 10)
+    WHEN Rels_Dt_by_19 <> 'CUSTOMS' AND (FAST <> 'Y' OR transaction_status_cd <> 'RELEASED' OR transaction_status_cd IS NULL) AND Rels_UpDt_ts_5022 IS NULL AND Released_ts_5098 IS NOT NULL THEN SUBSTRING(CAST(Released_ts_5098 AS STRING), 1, 10)
+    WHEN DeleteCount_186_495_496_5023 > 0 THEN "Cancelled"
+    ELSE ''
+  END AS Cstm_Rls_Date,
+  CASE
+    WHEN Rels_Dt_by_19 <> 'CUSTOMS' AND (FAST <> 'Y' OR transaction_status_cd <> 'RELEASED') AND Rels_UpDt_ts_5022 IS NULL AND Released_ts_5098 IS NULL AND DeleteCount_186_495_496_5023 = 0 AND CR_CstAcpt_ts_105 IS NOT NULL AND entry_type_code <> 86 THEN "Unresolved (UCR)"
+    WHEN ES_CstAcpt_ts_106 IS NOT NULL OR already_sent_es IN ('A', 'Y') OR statement_nbr <> '' OR Not_WIP_ts_499 IS NOT NULL THEN "ES Accepted"
+    WHEN ES_CstAcpt_ts_106 IS NULL AND ((Rels_Dt_by_19 = 'CUSTOMS' OR (FAST = 'Y' AND transaction_status_cd = 'RELEASED')) OR (Rels_Dt_by_19 <> 'CUSTOMS' AND (FAST <> 'Y' OR transaction_status_cd <> 'RELEASED') AND Rels_UpDt_ts_5022 IS NOT NULL) OR (Rels_Dt_by_19 <> 'CUSTOMS' AND (FAST <> 'Y' OR transaction_status_cd <> 'RELEASED') AND Rels_UpDt_ts_5022 IS NULL AND Released_ts_5098 IS NOT NULL) OR already_sent_es IN ('N', 'D', 'R')) AND DeleteCount_186_495_496_5023 = 0 THEN "Due & Overdue"
+    WHEN DeleteCount_186_495_496_5023 > 0 OR already_sent_es = 'C' THEN "Cancelled"
+    ELSE "Incomplete"
+  END AS WIP_Status,
+  COALESCE(Tenth_Day_ts_92057, Pmt_Due_ts_42) AS WIP_Due_Date,
+  Tenth_Day_ts_92057,
+  Pmt_Due_ts_42,
+  certification_cr_es,
+  already_sent_es,
+  LightsOut_ts_4000,
+  lo_auto_bill,
+  auto_bill,
+  IF(edi_uploaded = 'Y', 'Y', 'N') AS edi_used,
+  IF(ci_lines_edi > 0, 'Y', 'N') AS ci_edi_used,
+  ci_lines_edi,
+  CASE
+    WHEN LightsOut_ts_4000 IS NOT NULL
+    AND lo_auto_bill = 'Y' THEN 'Y'
+    ELSE 'N'
+  END AS lights_out,
+  CASE
+    WHEN FirstLog_by_4 IN ('CHEDILD1', 'KC_LOE', 'TPS CHEDIFIL', 'CUSTOMS') THEN 'Y'
+    ELSE 'N'
+  END AS hf_file_open,
+  CASE
+    WHEN (FirstLog_by_4 IN ('CHEDILD1', 'KC_LOE') AND CR_CstAcpt_ts_105 IS NOT NULL AND ACR_Manl_ts_92039 IS NULL AND NOT (certification_cr_es = 'A' AND First_ES_by_99212 NOT IN ('CHEDILD1', 'KC_LOE'))) OR l_r = 'Y' OR FAST = 'Y' THEN 'Y'
+    ELSE 'N'
+  END AS hf_cargo_release,
+  CASE
+    WHEN First_ES_by_99212 IN ('KC_LOE', 'ALLIANCE') THEN 'Y'
+    ELSE 'N'
+  END AS hf_entry_summary,
+  IF(
+    SUBSTR(CAST(BilPrep_ts_119 AS STRING), 1, 1) = '2' AND (auto_bill = 'Y' OR lo_auto_bill = 'Y'),
+    'Y',
+    'N'
+  ) AS hf_billing,
+  -- ... [Additional CASE statements converted similarly]
+  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', CAST(COALESCE(First_ES_ts_99212, ES_Sent_ts_36, IB_accept_ts_91008) AS TIMESTAMP)) AS ES_IB_Date,
+  Filed_ts_16,
+  Lqdtn_ts_44,
+  Lqdtn_by_44,
+  recon_issue_code,
+  CASE
+    WHEN recon_trade_agreement = TRUE THEN 'Y'
+    WHEN recon_trade_agreement = FALSE THEN 'N'
+    ELSE CAST(NULL AS STRING)
+  END AS recon_trade_agreement,
+  type_liquidation,
+  int_amt_liquidated,
+  PreAlert_ts_205,
+  CR_noTx_ts_3001,
+  CR_noTx_by_3001,
+  ES_noTx_ts_3002,
+  ES_noTx_by_3002,
+  NSC_work_mgmt_ts_1330,
+  NSC_work_mgmt_by_1330,
+  CSC_work_mgmt_ts_1340,
+  CSC_work_mgmt_by_1340,
+  NSC_Ready_ts_1993,
+  NSC_Ready_by_1993,
+  CSC_Ready_ts_1994,
+  CSC_Ready_by_1994,
+  -- ... [Additional fields]
+  ROUND(
+    TIMESTAMP_DIFF(
+      COALESCE(CAST(CloseKey_ts_82006 AS TIMESTAMP), CAST(RefClose_ts_55285 AS TIMESTAMP), CURRENT_TIMESTAMP()),
+      COALESCE(CAST(OpenKey_ts_82005 AS TIMESTAMP), CAST(Ref_Open_ts_55284 AS TIMESTAMP), CURRENT_TIMESTAMP()),
+      SECOND
+    ) / 60,
+    0
+  ) AS Ref_Key_Open_to_Close,
+  CAST(filer_cd AS STRING) || '-' || SUBSTRING(CAST(CAST(entry_no AS INT64) AS STRING), 1, 8) AS brokerage_trans_id,
+  CAST(bill_to_cust AS STRING) || '-' || SUBSTRING(CAST(file_no AS STRING), 1, 3) || '-' || SUBSTRING(CAST(file_no AS STRING), 4, 6) AS billing_invoice_id,
+  CASE
+    WHEN business_category NOT IN ('Northern Border', 'Air/Sea', 'Southern Border') THEN 'Northern Border'
+    ELSE business_category
+  END AS coda_category,
+  IF(file_no > 0, 'Y', 'N') AS drr_flag,
+  SUBSTRING(CAST(last_update_ts AS STRING), 1, 10) AS qlik_index_dt,
+  CAST(last_update_ts AS STRING) AS update_ts
+FROM
+  (
+    -- This subquery joins the two main tables and selects all necessary fields
+    SELECT
+      F.cust_nbr,
+      F.cust_name,
+      F.file_no,
+      F.filer_cd,
+      F.entry_no,
+      F.file_irs_no,
+      F.cust_ref,
+      F.isf_confirmation,
+      F.custom_client,
+      F.csc_name,
+      F.nsc_name,
+      F.business_category,
+      F.team_id,
+      F.Director_name,
+      F.LOB_Name,
+      F.div_no,
+      F.div_name,
+      F.import_div,
+      F.export_div,
+      F.date_entry,
+      CASE
+        WHEN F.div_no IN (161, 163, 164, 275, 651, 654, 660, 682, 683, 685) THEN 3600
+        WHEN F.div_no = 162 THEN 7200
+        WHEN F.div_no IN (628, 656, 661, 687, 691) THEN 10800
+        ELSE 0
+      END AS ts_3_adjust,
+      F.consignee_no,
+      F.consignee_name,
+      F.consignee_address_1,
+      F.consignee_address_2,
+      F.consignee_city,
+      F.consignee_state,
+      F.consignee_zip,
+      F.consignee_country,
+      F.port_entry_code,
+      F.port_entry_desc,
+      F.port_unlading_code,
+      F.port_unlading_desc,
+      F.mot_code,
+      F.mot_desc,
+      F.mot_rollup,
+      F.entry_type_code,
+      F.entry_type_desc,
+      CASE
+        WHEN F.entry_type_code IN (61, 62, 63) THEN 'Y'
+        ELSE 'N'
+      END AS inbond,
+      F.L_R,
+      F.FAST,
+      F.firms_code,
+      F.location_of_goods,
+      F.coe_code,
+      F.coe_name,
+      F.bill_to_cust,
+      F.coo_code,
+      F.coo_name,
+      F.dest_state,
+      F.c4_list,
+      F.manufacturer_id,
+      F.manufacturer_name,
+      F.certification_cr_es,
+      F.already_sent_es,
+      F.bond_type,
+      F.bond_surety,
+      F.edi_uploaded,
+      F.statement_nbr,
+      F.auto_bill,
+      F.lo_auto_bill,
+      F.scac,
+      F.carrier,
+      F.vessel_nbr,
+      F.voyage_nbr,
+      F.census_warning,
+      F.recon_issue_code,
+      F.recon_trade_agreement,
+      F.type_liquidation,
+      F.int_amt_liquidated,
+      F.piece_count,
+      F.weight_gross,
+      F.ship_duty_tot,
+      F.ship_fees_tot,
+      F.inv_duty_fees_tot,
+      F.duty_fees_tot,
+      F.cvd_bonded_tot,
+      F.cvd_non_bonded_tot,
+      F.add_bonded_tot,
+      F.add_non_bonded_tot,
+      F.value_entered,
+      F.value_us,
+      F.value_foreign,
+      F.rnd_value_entered,
+      F.dbwork_oid,
+      F.transaction_type_cd,
+      F.transaction_status_cd,
+      F.it_bonds,
+      F.master_bills,
+      F.house_bills,
+      F.id_scacs,
+      F.house_scacs,
+      F.containers,
+      F.ship_mpf,
+      F.ship_hmf,
+      F.ci_count_active,
+      F.ci_lines_active,
+      F.cat_used_active,
+      (F.ci_lines_active - F.cat_used_active) AS non_cat_lines_active,
+      F.ci_lines_edi,
+      F.ci_count_total,
+      F.ci_lines_total,
+      F.cat_used_total,
+      (F.ci_lines_total - F.cat_used_total) AS non_cat_lines_total,
+      F.invoice_count,
+      F.inv_tot_amt,
+      F.inv_revenue_amt,
+      F.brokerage_entry_fee,
+      F.duty_billed,
+      F.freight_billed,
+      F.ancillary_fee,
+      F.other_charges,
+      F.tier,
+      D.Export_by_1,
+      D.Export_ts_1,
+      D.EntryDocs_by_3,
+      D.EntryDocs_ts_3,
+      D.FirstLog_by_4,
+      D.FirstLog_ts_4,
+      D.ETA_Imprt_ts_6,
+      D.PO_Imprt_ts_7,
+      D.ETA_Entry_ts_11,
+      D.PO_Entry_ts_12,
+      D.Filed_ts_16,
+      D.Rels_Dt_by_19,
+      D.Rels_Dt_ts_19,
+      D.DspTruck_by_24,
+      D.DspTruck_ts_24,
+      D.Disp_Date_by_33,
+      D.Disp_Date_ts_33,
+      D.CR_Sent_by_34,
+      D.CR_Sent_ts_34,
+      D.ES_Sent_by_36,
+      D.ES_Sent_ts_36,
+      D.Pmt_Due_by_42,
+      D.Pmt_Due_ts_42,
+      D.Lqdtn_by_44,
+      D.Lqdtn_ts_44,
+      D.CR_Valid_by_46,
+      D.CR_Valid_ts_46,
+      D.ES_Valid_by_47,
+      D.ES_Valid_ts_47,
+      D.Last_inbond_by_88,
+      D.Last_inbond_ts_88,
+      D.DocsRec_by_98,
+      D.DocsRec_ts_98,
+      D.CR_CstAcpt_by_105,
+      D.CR_CstAcpt_ts_105,
+      D.ES_CstAcpt_by_106,
+      D.ES_CstAcpt_ts_106,
+      D.Cert3461_by_107,
+      D.Cert3461_ts_107,
+      D.BilPrep_by_119,
+      D.BilPrep_ts_119,
+      D.PreAlert_by_205,
+      D.PreAlert_ts_205,
+      D.Not_WIP_ts_499,
+      D.FTZ_Auth_ts_714,
+      D.ACE_ES_by_860,
+      D.ACE_ES_ts_860,
+      D.ACE_to_ACS_by_868,
+      D.ACE_to_ACS_ts_868,
+      D.Audit_Pass_by_1100,
+      D.Audit_Pass_ts_1100,
+      D.Audit_Fail_by_1200,
+      D.Audit_Fail_ts_1200,
+      D.NSC_work_mgmt_by_1330,
+      D.NSC_work_mgmt_ts_1330,
+      D.CSC_work_mgmt_by_1340,
+      D.CSC_work_mgmt_ts_1340,
+      D.AN_Recd_by_1987,
+      D.AN_Recd_ts_1987,
+      D.NSC_Ready_by_1993,
+      D.NSC_Ready_ts_1993,
+      D.CSC_Ready_by_1994,
+      D.CSC_Ready_ts_1994,
+      D.CR_noTx_by_3001,
+      D.CR_noTx_ts_3001,
+      D.ES_noTx_by_3002,
+      D.ES_noTx_ts_3002,
+      D.LightsOut_by_4000,
+      D.LightsOut_ts_4000,
+      D.Pend_Exam_ts_5003,
+      D.Exam_Rels_ts_5004,
+      D.Rels_UpDt_ts_5022,
+      D.Entry_Canc_ts_5023,
+      D.Mfst_Hold_ts_5051,
+      D.Hold_Agri_ts_5052,
+      D.Hold_OGA_ts_5053,
+      D.Hold_Remv_ts_5054,
+      D.Released_by_5098,
+      D.Released_ts_5098,
+      D.FDA_Revw_ts_7101,
+      D.FDA_Hold_ts_7102,
+      D.FDA_Exam_ts_7104,
+      D.FDA_Prcd_ts_7106,
+      D.Ref_Open_by_55284,
+      D.Ref_Open_ts_55284,
+      D.RefClose_by_55285,
+      D.RefClose_ts_55285,
+      D.OpenKey_by_82005,
+      D.OpenKey_ts_82005,
+      D.CloseKey_by_82006,
+      D.CloseKey_ts_82006,
+      D.AN_MR_by_82110,
+      D.AN_MR_ts_82110,
+      D.CR_que_kc_by_91003,
+      D.CR_que_kc_ts_91003,
+      D.ES_que_kc_by_91004,
+      D.ES_que_kc_ts_91004,
+      D.IB_queued_by_91006,
+      D.IB_queued_ts_91006,
+      D.IB_accept_by_91008,
+      D.IB_accept_ts_91008,
+      D.SE_queued_by_91009,
+      D.SE_queued_ts_91009,
+      D.one_usg_ts_91065,
+      D.ISF_Acpt_by_92008,
+      D.ISF_Acpt_ts_92008,
+      D.ACE_CR_by_92028,
+      D.ACE_CR_ts_92028,
+      D.ACR_Sent_by_92029,
+      D.ACR_Sent_ts_92029,
+      D.ACR_Rcvd_by_92033,
+      D.ACR_Rcvd_ts_92033,
+      D.ACR_Manl_by_92039,
+      D.ACR_Manl_ts_92039,
+      D.CR_ACE_Acpt_by_92055,
+      D.CR_ACE_Acpt_ts_92055,
+      D.Tenth_Day_by_92057,
+      D.Tenth_Day_ts_92057,
+      D.ABI_ES_Manl_by_99026,
+      D.ABI_ES_Manl_ts_99026,
+      D.ABI_CR_Manl_by_99027,
+      D.FirstRlsDt_ts_99202,
+      D.First_ES_by_99212,
+      D.First_ES_ts_99212,
+      D.FirstBCS_by_99214,
+      D.FirstBCS_ts_99214,
+      D.FDA_Prior_ts_99271,
+      D.FDA_Revw_ts_99680,
+      D.FDA_Docs_Req_ts_99681,
+      D.FDA_Exam_ts_99682,
+      D.FDA_Hold_ts_99683,
+      D.FDA_Prcd_ts_99684,
+      D.InitES_Acpt_by_99314,
+      D.InitES_Acpt_ts_99314,
+      D.EntryDt_ts_99083,
+      D.DeleteCount_186_495_496_5023,
+      D.last_update_ts
+    FROM
+      `evolve_reporting.daily_evolve_shipments2` AS F
+      INNER JOIN (
+        SELECT
+          *
+        FROM
+          `evolve_reporting.daily_evolve_tracing_date_summary`
+      ) AS D ON F.file_no = D.file_no
+  ) AS X

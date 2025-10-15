@@ -1,0 +1,8 @@
+config {
+  type: "table",
+  dependOnDependencyAssertions: true,
+  schema: "semantic_smartborder"
+}
+
+select *
+from ${ref("stg_smartborder_products")}

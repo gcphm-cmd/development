@@ -1,0 +1,9 @@
+config {
+  type: "assertion"
+}
+
+
+select sb_num,  entry_no, count(1)
+FROM ${ref("stg_smarborder_trans")}
+group by sb_num,  entry_no
+having count(1) > 1
