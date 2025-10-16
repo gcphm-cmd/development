@@ -1,5 +1,6 @@
 config {
   type: "table",
+  dependOnDependencyAssertions: true,
   schema: "semantic_smartborder"
 }
 
