@@ -1,6 +1,6 @@
 config {
   type: "table",
-  schema: "semantic_smartborder"
+  schema: "semantic_evolve"
 }
 
 select *
