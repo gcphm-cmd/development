@@ -4,4 +4,4 @@ config {
   }
 
 
-select * from `prj-lii-datalake-devtest.EVOLVE.ship_new`
+select * from `prj-lii-datalake-devtest.master_smartborder.test`
