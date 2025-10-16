@@ -3,13 +3,9 @@ config {
 }
 
 
-select *
-FROM 
-${ref("stg_smartborder_trans")} 
-having count(1) > 0
-
-SELECT  * 
-  FROM
-   ${ref("stg_smartborder_trans")}  
-WHERE
-  ( SELECT COUNT(1) FROM ${ref("stg_smartborder_trans")} ) > 0
+SELECT
+  CASE
+    WHEN COUNT(*) = 0 THEN TRUE
+    ELSE NULL
+  END AS assertion_failed
+FROM ${ref("stg_evolve_ship")}
