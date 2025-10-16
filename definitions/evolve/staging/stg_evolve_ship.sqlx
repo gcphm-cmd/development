@@ -4,4 +4,4 @@ config {
   }
 
 
-select * from `prj-lii-datalake-devtest.EVOLVE.ship`
+select * from `prj-lii-datalake-devtest.EVOLVE.ship_new`
