@@ -1,0 +1,15 @@
+config {
+  type: "assertion"
+}
+
+
+select *
+FROM 
+${ref("stg_smartborder_trans")} 
+having count(1) > 0
+
+SELECT  * 
+  FROM
+   ${ref("stg_smartborder_trans")}  
+WHERE
+  ( SELECT COUNT(1) FROM ${ref("stg_smartborder_trans")} ) > 0

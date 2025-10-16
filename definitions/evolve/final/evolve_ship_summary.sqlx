@@ -1,0 +1,7 @@
+config {
+  type: "table",
+  schema: "semantic_smartborder"
+}
+
+select *
+from ${ref("stg_evolve_ship")}

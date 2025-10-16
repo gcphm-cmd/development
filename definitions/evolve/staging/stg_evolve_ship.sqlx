@@ -1,0 +1,7 @@
+config {
+  type: "table",
+  schema: "semantic_evolve"
+  }
+
+
+select * from `prj-lii-datalake-devtest.EVOLVE.ship`
