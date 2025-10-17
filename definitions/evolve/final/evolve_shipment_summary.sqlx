@@ -1,8 +1,0 @@
-config {
-  type: "table",
-  dependOnDependencyAssertions: true,
-  schema: "semantic_evolve"
-}
-
-select *
-from ${ref("stg_evolve_shipments")}
